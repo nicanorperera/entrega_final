@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class AppTest < Minitest::Test
+class AppTest < MiniTest::Unit::TestCase 
   include Rack::Test::Methods
 
   def app
@@ -10,6 +10,7 @@ class AppTest < Minitest::Test
   def test_get_root
     get '/'
     assert_equal 200, last_response.status
-    assert_equal 'Hello World', last_response.body
+    assert_equal 'test', last_response.body
   end
+
 end
