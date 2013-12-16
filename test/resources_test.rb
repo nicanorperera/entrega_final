@@ -1,5 +1,4 @@
 require 'test_helper'
-require 'json'
 
 class ResourcesTest < MiniTest::Unit::TestCase 
   include Rack::Test::Methods
@@ -8,59 +7,60 @@ class ResourcesTest < MiniTest::Unit::TestCase
     Sinatra::Application
   end
 
-  def teardown
+  def setup
     Resource.delete_all
+    @resource = nil
+  end
+
+  def resource
+    @resource ||= Resource.create!(name: 'A name', description: 'A description')
   end
 
   def test_show_resource
-    r = Resource.create!(name: 'A resource', description: 'A description')
-    get "/resources/#{r.id}"
+    get "/resources/#{resource.id}"
     assert_equal 200, last_response.status
     data = JSON.parse last_response.body
-    resource = data['resource']
-    assert_equal 'A resource', resource['name']
-    assert_equal 'A description', resource['description']
-  end
 
-  def test_resources_if_none
-    get '/resources'
-    assert_equal 200, last_response.status
-    data = JSON.parse last_response.body
-    assert_equal [], data['resources']
-    #assert_equal url('/resources'), data[:links][:url] #TODO: test this
+    r = data['resource']
+    assert_equal 'A name', r['name']
+    assert_equal 'A description', r['description']
+
+    get "/resources/8989898989"
+    assert_equal 404, last_response.status
   end
 
   def test_resources
-    r = Resource.create!(name: 'A resource', description: 'A description')
+    resource
     get '/resources'
     assert_equal 200, last_response.status
     data = JSON.parse last_response.body
-    resource = data['resources'].first
-    assert_equal 'A resource', resource['name']
-    assert_equal 'A description', resource['description']
+    r = data['resources'].first
+    assert_equal 'A name', r['name']
+    assert_equal 'A description', r['description']
   end
 
   def test_create_resource
     assert_equal 0, Resource.count
     post '/resources', {name: 'Name', description: 'Description'}
     assert_equal 1, Resource.count
-    resource = Resource.first
-    assert_equal 'Name', resource.name
-    assert_equal 'Description', resource.description
+    
+    r = Resource.last # FIX
+    assert_equal 'Name', r.name
+    assert_equal 'Description', r.description
   end
 
   def test_update_resource
-    r = Resource.create(name: 'Old name', description: 'Old description')
-    put "/resources/#{r.id}", {resource: {name: 'New name', description: 'New description'}}
-    resource = Resource.first
-    assert_equal 'New name', resource.name
-    assert_equal 'New description', resource.description
+    old_resource = Resource.create(name: 'Old name', description: 'Old description')
+    put "/resources/#{old_resource.id}", {resource: {name: 'New name', description: 'New description'}}
+    new_resource = Resource.take
+    assert_equal 'New name', new_resource.name
+    assert_equal 'New description', new_resource.description
   end
 
   def test_delete_resource
-    r = Resource.create(name: 'Name', description: 'Description')
+    resource
     assert_equal 1, Resource.count
-    delete "/resources/#{r.id}/delete"
+    delete "/resources/#{resource.id}"
     assert_equal 0, Resource.count
   end
 end
