@@ -12,20 +12,27 @@ class BookingsTest < MiniTest::Unit::TestCase
   end
 
   def teardown
+    Resource.delete_all
     Booking.delete_all
   end
 
-  def test_show_bookings
-    today = Date.today
-    @resource.bookings.create!(start: (today + 1.day) , end: (today + 2.days) )
-    @resource.bookings.create!(start: (today + 3.days), end: (today + 4.days) )
-    @resource.bookings.create!(start: (today + 5.days), end: (today + 6.days) )
-
-    get "/resources/#{@resource.id}/bookings", {date: today.to_s, limit: 30, status: :all}
-    assert_equal 200, last_response.status
-    data = JSON.parse last_response.body
-    bookings = data['bookings']
-    #assert_equal 3, bookings.size
+  def test_non_existing_resource_should_return_404
+    get bookings_resource_path(999)
+    assert_equal 404, last_response.status
   end
+
+#  def test_should_return_all_bookings
+#    today = Date.today
+#
+#    @resource.bookings.create!(start_time: (today + 1.day) , end_time: (today + 2.days), status: 'pending')
+#    @resource.bookings.create!(start_time: (today + 3.days), end_time: (today + 4.days), status: 'pending' )
+#    @resource.bookings.create!(start_time: (today + 5.days), end_time: (today + 6.days), status: 'pending' )
+#
+#    get bookings_resource_path(@resource.id), {date: today.to_s, limit: 10, status: :all}
+#    assert_equal 200, last_response.status
+#    data = JSON.parse last_response.body
+#    bookings = data['bookings']
+#    assert_equal 3, bookings.size
+#  end
 
 end
