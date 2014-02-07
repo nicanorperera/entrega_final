@@ -18,7 +18,7 @@ class ResourcesTest < MiniTest::Unit::TestCase
   end
 
   def test_resource_not_existence_should_return_404
-    get resource_path(9999)
+    get resource_path(99999)
     assert_equal 404, last_response.status
   end
 

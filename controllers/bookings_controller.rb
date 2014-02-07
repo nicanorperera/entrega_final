@@ -11,7 +11,10 @@ end
 
 # Bookings
 get bookings_resource_path do
-  bookings_to_json(@resource.bookings)
+  from   = params['date'] ? params['date'].to_date : (Date.today + 1.day)
+  to     = from + (params['limit'].to_i || 30)
+  status = params['status'] if ['pending', 'approved'].include? params['status']
+  bookings_to_json(@resource.filtered_bookings(from, to, status))
 end
 
 # Make a reservation
@@ -61,11 +64,12 @@ def booking_to_hash(booking)
 end
 
 def booking_links(resource_id, id)
-  [] << 
-  link(booking_resource_path(resource_id, id)                   ) << 
-  link(resource_path(resource_id)            , :resource        ) <<
-  link(booking_resource_path(resource_id, id), :accept, 'PUT'   ) <<
-  link(booking_resource_path(resource_id, id), :delete, 'DELETE')
+  [
+    link(booking_resource_path(resource_id, id)),
+    link(resource_path(resource_id), :resource),
+    link(booking_resource_path(resource_id, id), :accept, 'PUT'),
+    link(booking_resource_path(resource_id, id), :delete, 'DELETE')
+  ] 
 end
 
 #  "from": "2013-11-12T00:00:00Z",

@@ -19,5 +19,5 @@ def resources_path
 end
 
 def root_path
-  "/"
+  '/'
 end
