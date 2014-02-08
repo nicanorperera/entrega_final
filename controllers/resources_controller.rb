@@ -11,7 +11,12 @@ end
 # Create a Resource
 post resources_path do
   @resource = Resource.new(params)
-  @resource.save ? resource_to_json(@resource) : halt(500)
+  if @resource.save
+    status 201
+    resource_to_json(@resource)
+  else
+    halt(500)
+  end
 end
 
 # Update a Resource

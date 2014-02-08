@@ -19,12 +19,12 @@ class ResourcesTest < MiniTest::Unit::TestCase
 
   def test_resource_not_existence_should_return_404
     get resource_path(99999)
-    assert_equal 404, last_response.status
+    assert_status 404
   end
 
   def test_show_resource
     get resource_path(resource.id)
-    assert_equal 200, last_response.status
+    assert_status 200
 
     r = JSON.parse(last_response.body)['resource']
 
@@ -43,7 +43,7 @@ class ResourcesTest < MiniTest::Unit::TestCase
   def test_resources
     resource
     get resources_path
-    assert_equal 200, last_response.status
+    assert_status 200
     data = JSON.parse last_response.body
 
     r = data['resources'].first

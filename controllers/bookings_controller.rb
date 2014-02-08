@@ -1,5 +1,6 @@
-#load_booking
+# Load Booking
 before booking_resource_path do
+  @resource ||= Resource.find_by(id: params[:resource_id])
   @booking = @resource.bookings.find_by(id: params[:booking_id])
   halt(404) unless @booking
 end
@@ -13,6 +14,7 @@ end
 get bookings_resource_path do
   from   = params['date'] ? params['date'].to_date : (Date.today + 1.day)
   to     = from + (params['limit'].to_i || 30)
+  params['status'] ||= 'approved'
   status = params['status'] if ['pending', 'approved'].include? params['status']
   bookings_to_json(@resource.filtered_bookings(from, to, status))
 end
@@ -21,10 +23,11 @@ end
 post bookings_resource_path do
   from, to = params['from'].to_date, params['to'].to_date
   if @resource && @resource.available?(from, to)
-    booking = @resource.bookings.create(start_time: from, end_time: to)
+    status 201
+    booking = @resource.bookings.create(start_time: from, end_time: to, status: 'pending')
     booking_to_json(booking)
   else
-    halt(404)
+    halt(409) # 409 Conflict
   end
 end
 
@@ -33,17 +36,20 @@ delete booking_resource_path do
   @booking.destroy ? {}.to_json : halt(404) #TODO: Do better
 end
 
-# Accept Resource
+# Authorize Resource
 put booking_resource_path do
-  if @booking.update(status: 'approved')
-    resource.filtered_bookings(@booking.start_time, @booking.end_time, 'pending').destroy_all
-    booking_to_json(@booking)
+  if @resource.available?(@booking.start_time, @booking.end_time)
+    if @booking.update(status: 'approved')
+      @resource.filtered_bookings(@booking.start_time, @booking.end_time, 'pending').destroy_all
+      booking_to_json(@booking)
+    else
+      halt(404)
+    end
   else
-    halt(404)
+    halt(409)
   end
 end
 
-private
 
 def bookings_to_json(bookings)
   links = [{rel: :self, uri: request.url}]
@@ -68,7 +74,7 @@ def booking_links(resource_id, id)
     link(booking_resource_path(resource_id, id)),
     link(resource_path(resource_id), :resource),
     link(booking_resource_path(resource_id, id), :accept, 'PUT'),
-    link(booking_resource_path(resource_id, id), :delete, 'DELETE')
+    link(booking_resource_path(resource_id, id), :reject, 'DELETE')
   ] 
 end
 

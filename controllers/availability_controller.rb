@@ -1,6 +1,5 @@
 # Show availability of a resource
-get availability_resource_path do
-  puts 'AAA', 'AAA', 'AAA', 'AAA', params, 'AAA', 'AAA', 'AAA', 'AAA'
+get availability_resource_path do  
   from   = params['date'] ? params['date'].to_date : (Date.today + 1.day)
   to     = from + (params['limit'] ? params['limit'].to_i : 30)
   reserved = @resource.filtered_bookings(from, to, 'approved').pluck(:start_time, :end_time)

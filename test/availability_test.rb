@@ -30,13 +30,17 @@ class AvailiabilityTest < MiniTest::Unit::TestCase
     load_bookings(@resource)
 
     get availability_resource_path(@resource.id), {date: '2013-12-10', limit: 1.to_s}
-    assert_equal 200, last_response.status
+    assert_status 200
     data = JSON.parse last_response.body
-    puts "AAAAAAAAAAAAAAAAAAA", "AAAAAAAAAAAAAAAAA", "AAAAAAAAAAAAAAAA"
-    puts data
-
     availability = data['availability']
     assert_equal 3, availability.size
+
+    period = availability.first
+    assert_equal '2013-12-10', period['from']
+    assert_equal '2013-12-10T12:00:00Z', period['to']
+
+    assert_equal 'book', period['links'][0]['rel']
+    assert_equal 'resource', period['links'][1]['rel']
   end
 
   private

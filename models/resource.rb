@@ -4,12 +4,12 @@ class Resource < ActiveRecord::Base
 
   def filtered_bookings(from, to, status = nil)
     bs = bookings.between(from, to)
-    #bs = bs.where(status: status) if status
+    bs = bs.where(status: status) if status
     bs
   end
 
   def available?(from, to)
-    filtered_bookings(from, to, 'pending').empty?
+    filtered_bookings(from, to, 'approved').empty?
   end
 
 end
